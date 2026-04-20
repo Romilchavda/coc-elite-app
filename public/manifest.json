@@ -1,0 +1,15 @@
+{
+  "short_name": "EliteTracker",
+  "name": "CoC Elite Attack Tracker",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3522/3522030.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#080a0f",
+  "background_color": "#080a0f"
+}

@@ -11,3 +11,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </React.StrictMode>,
 )
+
+// --- SERVICE WORKER REGISTRATION (PWA Setup) ---
+// Ye code website ko background me chalne aur notification bhejne me help karega
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('SW Registered with scope:', registration.scope);
+      })
+      .catch(err => {
+        console.log('SW Registration failed:', err);
+      });
+  });
+}
