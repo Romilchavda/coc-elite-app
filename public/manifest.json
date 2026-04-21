@@ -1,9 +1,9 @@
 {
-  "short_name": "EliteTracker",
-  "name": "CoC Elite Attack Tracker",
+  "short_name": "ClashRaven",
+  "name": "Clash Raven",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3522/3522030.png",
+      "src": "https://www.image2url.com/r2/default/images/1776784377599-c068b0ab-70a0-4ecc-9d8e-7e75303a2d63.png",
       "sizes": "512x512",
       "type": "image/png"
     }
