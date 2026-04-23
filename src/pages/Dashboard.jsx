@@ -1,4 +1,11 @@
-// ... (PLAYER_TAGS same rahega)
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { RotateCcw, ExternalLink, ShieldCheck, Sword } from 'lucide-react';
+
+const PLAYER_TAGS = [
+  "PLGQLGLRY", "PRGJC80UU", "LL9P29L9Y", "Q28LGU0VC", 
+  "QJY928LPY", "QR28JVGJ8", "QGUYP0J0Q", "G8VY8G220"
+];
 
 export default function Dashboard() {
   const [leagues, setLeagues] = useState([]);
@@ -7,35 +14,31 @@ export default function Dashboard() {
 
   const fetchAllData = async () => {
     setLoading(true);
-    
     try {
-      // 1. Local JSON load karna
-      const lRes = await fetch(`/leagues.json?t=${Date.now()}`); // Cache-buster
+      // 1. Fetch Leagues Limits
+      const lRes = await fetch(`/leagues.json?t=${Date.now()}`);
       const lData = await lRes.json();
       setLeagues(lData);
 
-      // 2. Parallel Fetching (Saare accounts ek saath)
+      // 2. Parallel Fetch Players from API
       const fetchPromises = PLAYER_TAGS.map(tag => 
-        fetch(`/.netlify/functions/fetchPlayer?tag=${tag}&t=${Date.now()}`) // Cache-buster added
+        fetch(`/.netlify/functions/fetchPlayer?tag=${tag}&t=${Date.now()}`)
           .then(res => res.json())
-          .catch(e => {
-            console.error(`Error fetching ${tag}`, e);
-            return null;
-          })
+          .catch(() => null)
       );
 
-      const resultsArray = await Promise.all(fetchPromises);
-      
+      const results = await Promise.all(fetchPromises);
       const newPlayerData = {};
+      
       PLAYER_TAGS.forEach((tag, index) => {
-        if (resultsArray[index]) {
-          newPlayerData[tag] = resultsArray[index];
+        if (results[index]) {
+          newPlayerData[tag] = results[index];
         }
       });
 
       setPlayerData(newPlayerData);
     } catch (e) {
-      console.error("Global Fetch Error", e);
+      console.error("Load Error", e);
     } finally {
       setLoading(false);
     }
@@ -43,40 +46,51 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchAllData();
-    // Auto-refresh every 5 minutes
     const interval = setInterval(fetchAllData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="space-y-8 pb-10 px-2">
-      {/* Header logic same rahegi... */}
-      
+      {/* Header */}
+      <div className="flex justify-between items-center bg-cardBg border border-white/5 p-6 rounded-[2rem] shadow-xl">
+        <div>
+          <h2 className="text-2xl font-rajdhani font-black italic">LIVE<span className="text-accent">TRACKER</span></h2>
+          <p className="text-[9px] text-gray-500 uppercase tracking-widest">Real-time API Sync</p>
+        </div>
+        <button 
+          onClick={fetchAllData} 
+          className={`p-3 bg-white/5 text-accent rounded-xl ${loading ? 'animate-spin' : 'active:scale-90'}`}
+        >
+          <RotateCcw size={20}/>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {PLAYER_TAGS.map(tag => {
           const apiInfo = playerData[tag];
-          
+
+          // Loading State for individual card
           if (!apiInfo) return (
             <div key={tag} className="bg-cardBg p-24 rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center gap-4">
                <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-               <p className="font-rajdhani text-gray-600 text-sm uppercase">Syncing #{tag}...</p>
+               <p className="font-rajdhani text-gray-600 text-sm uppercase">Syncing...</p>
             </div>
           );
 
-          // API stats handle karna with Fallback
-          const currentAttacks = apiInfo.attackWins || 0;
-          const currentDefenses = apiInfo.defenseWins || 0;
-          
-          // League logic
+          // Data extracted from API
           const tier = apiInfo.leagueTier || apiInfo.league;
           const matchedLeague = leagues.find(l => Number(l.id) === Number(tier?.id));
           const targetAtks = matchedLeague ? matchedLeague.attacks : 8;
+          
+          const currentAttacks = apiInfo.attackWins || 0;
+          const currentDefenses = apiInfo.defenseWins || 0;
           const progress = Math.min(100, (currentAttacks / targetAtks) * 100);
 
           return (
-            <motion.div key={tag} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-cardBg border border-white/5 p-6 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+            <motion.div key={tag} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-cardBg border border-white/5 p-6 rounded-[2.5rem] shadow-2xl relative">
               
-              {/* Header logic same rahegi (Icon and Name) */}
+              {/* Profile */}
               <div className="flex items-center gap-4 mb-6">
                 <img 
                   src={tier?.iconUrls?.large || tier?.iconUrls?.small || 'https://link.clashofclans.com/static/img/leagues/unranked.png'} 
@@ -109,7 +123,7 @@ export default function Dashboard() {
               {/* Line Progress Bar */}
               <div className="mb-6 px-1">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Ranked Mode Attacks Progress</span>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tournament Progress</span>
                   <span className="text-xs font-rajdhani font-bold text-success">{currentAttacks} / {targetAtks}</span>
                 </div>
                 <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-[2px] border border-white/5">
@@ -120,13 +134,13 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Footer trophies and Link... same as before */}
+              {/* Footer */}
               <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center px-1">
                 <div className="flex flex-col">
                   <span className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Current Trophies</span>
                   <span className="text-xs font-rajdhani font-bold text-white">🏆 {apiInfo.trophies}</span>
                 </div>
-                <a href={`https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${tag}`} target="_blank" className="bg-accent/10 p-2.5 rounded-xl text-accent hover:bg-accent hover:text-black transition-all">
+                <a href={`https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${tag}`} target="_blank" className="bg-accent/10 p-2.5 rounded-xl text-accent active:scale-90 transition-all">
                   <ExternalLink size={16} />
                 </a>
               </div>
