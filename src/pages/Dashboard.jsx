@@ -87,7 +87,7 @@ export default function Dashboard() {
                   alt="League" 
                 />
                 <div className="flex-1 truncate">
-                  <h3 className="font-rajdhani font-black text-accent text-xl leading-none uppercase truncate">{apiInfo.name}</h3>
+                  <h3 className="font-rajdhani font-black text-accent text-xl leading-none truncate">{apiInfo.name}</h3>
                   <div className="flex gap-2 mt-1.5">
                     <span className="bg-success/10 text-success text-[9px] font-bold px-2 py-0.5 rounded border border-success/20">TH {apiInfo.townHallLevel}</span>
                     <span className="bg-white/5 text-gray-400 text-[9px] font-bold px-2 py-0.5 rounded border border-white/10 uppercase">{tier?.name || 'Unranked'}</span>
