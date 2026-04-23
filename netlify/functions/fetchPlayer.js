@@ -2,17 +2,31 @@ const axios = require('axios');
 
 exports.handler = async (event) => {
   const { tag } = event.queryStringParameters;
-  const API_KEY = "YOUR_COC_API_KEY_HERE"; // Aapka CoC API Key
+  const API_KEY = process.env.COC_API_KEY; 
 
   try {
-    const response = await axios.get(`https://api.clashofclans.com/v1/players/%23${tag}`, {
-      headers: { 'Authorization': `Bearer ${API_KEY}` }
+    // Proxy URL use kar rahe hain jo IP restriction bypass kar deta hai
+    const url = `https://cocproxy.royaleapi.dev/v1/players/%23${tag}`;
+    
+    const response = await axios.get(url, {
+      headers: { 
+        'Authorization': `Bearer ${API_KEY}`,
+        'Accept': 'application/json'
+      }
     });
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(response.data)
+      body: JSON.stringify(response.data),
+      headers: { 
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*" // CORS handle karne ke liye
+      }
     };
   } catch (error) {
-    return { statusCode: 500, body: error.toString() };
+    return { 
+      statusCode: 500, 
+      body: JSON.stringify({ error: "Proxy Fetch Failed", message: error.message }) 
+    };
   }
 };
