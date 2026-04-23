@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Swords, Shield, Star, Zap, Coins, Droplet, ExternalLink } from 'lucide-react';
+import { Swords, Shield, Star, Zap, Coins, Droplet, ExternalLink, Loader2 } from 'lucide-react';
 
 const PLAYER_TAGS = [
   { name: "Romil Th17", tag: "PLGQLGLRY" },
@@ -20,11 +20,16 @@ export default function BattleLog() {
 
   const fetchLogs = async (tag) => {
     setLoading(true);
+    setLogs([]); // Purane logs saaf karo
     try {
       const res = await fetch(`/.netlify/functions/fetchBattleLog?tag=${tag}`);
       const data = await res.json();
-      setLogs(data.items || []);
-    } catch (e) { console.error(e); }
+      // Safe check: Agar items nahi hain toh khali array set karo
+      setLogs(data?.items || []); 
+    } catch (e) { 
+      console.error("Fetch Error:", e);
+      setLogs([]);
+    }
     setLoading(false);
   };
 
@@ -35,14 +40,15 @@ export default function BattleLog() {
   return (
     <div className="space-y-8 pb-20">
       <div className="border-l-4 border-cyanCustom pl-4">
-        <h2 className="text-3xl font-rajdhani font-black tracking-tighter italic">BATTLE<span className="text-cyanCustom">LOGS</span></h2>
-        <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em]">Live Combat Intel</p>
+        <h2 className="text-3xl font-rajdhani font-black tracking-tighter italic uppercase">Battle<span className="text-cyanCustom">Logs</span></h2>
+        <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em]">Combat Intel Report</p>
       </div>
 
+      {/* Account Selector */}
       <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
         {PLAYER_TAGS.map((acc) => (
           <button key={acc.tag} onClick={() => setActiveTab(acc.tag)}
-            className={`flex-shrink-0 px-5 py-2 rounded-xl font-rajdhani font-bold text-sm transition-all ${activeTab === acc.tag ? 'bg-cyanCustom text-black' : 'bg-cardBg text-gray-500 border border-white/5'}`}>
+            className={`flex-shrink-0 px-5 py-2 rounded-xl font-rajdhani font-bold text-sm transition-all border ${activeTab === acc.tag ? 'bg-cyanCustom text-black border-cyanCustom' : 'bg-cardBg text-gray-500 border-white/5'}`}>
             {acc.name}
           </button>
         ))}
@@ -50,10 +56,13 @@ export default function BattleLog() {
 
       <div className="grid gap-4">
         {loading ? (
-          <div className="py-20 text-center animate-pulse font-rajdhani text-gray-600">DECRYPTING LOGS...</div>
-        ) : (
+          <div className="py-20 flex flex-col items-center justify-center gap-4 text-gray-600 font-rajdhani">
+            <Loader2 className="animate-spin text-cyanCustom" size={40} />
+            <p className="tracking-widest uppercase text-sm">Accessing Battle Records...</p>
+          </div>
+        ) : logs.length > 0 ? (
           logs.map((battle, idx) => (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={idx}
               className="bg-cardBg border border-white/5 p-5 rounded-[1.5rem] shadow-xl flex flex-col md:flex-row gap-6 items-center">
               
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${battle.attack ? 'bg-accent/10 text-accent' : 'bg-cyanCustom/10 text-cyanCustom'}`}>
@@ -63,30 +72,39 @@ export default function BattleLog() {
               <div className="flex-1 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-1 mb-1">
                   {[...Array(3)].map((_, i) => (
-                    <Star key={i} size={18} className={`${i < battle.stars ? 'text-accent fill-accent' : 'text-gray-800'}`} />
+                    <Star key={i} size={18} className={`${i < (battle?.stars || 0) ? 'text-accent fill-accent' : 'text-gray-800'}`} />
                   ))}
-                  <span className="ml-3 font-rajdhani font-black text-2xl">{battle.destructionPercentage}%</span>
+                  <span className="ml-3 font-rajdhani font-black text-2xl">{battle?.destructionPercentage || 0}%</span>
                 </div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Opponent: {battle.opponentPlayerTag}</p>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest truncate w-48 mx-auto md:mx-0">Opponent: {battle?.opponentPlayerTag || "Unknown"}</p>
               </div>
 
+              {/* Resource Logic Fixed (Safe Mapping) */}
               <div className="flex gap-4 bg-black/20 p-3 rounded-2xl border border-white/[0.03]">
-                {battle.lootedResources?.map((res, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    {res.name === 'Gold' && <Coins size={14} className="text-yellow-500" />}
-                    {res.name === 'Elixir' && <Droplet size={14} className="text-pink-500" />}
-                    {res.name === 'DarkElixir' && <Zap size={14} className="text-purple-500" />}
-                    <span className="font-rajdhani font-bold text-sm">{(res.amount/1000).toFixed(0)}K</span>
-                  </div>
-                ))}
+                {battle?.lootedResources && battle.lootedResources.length > 0 ? (
+                  battle.lootedResources.map((res, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      {res.name === 'Gold' && <Coins size={14} className="text-yellow-500" />}
+                      {res.name === 'Elixir' && <Droplet size={14} className="text-pink-500" />}
+                      {res.name === 'DarkElixir' && <Zap size={14} className="text-purple-500" />}
+                      <span className="font-rajdhani font-bold text-sm">{(res.amount / 1000).toFixed(0)}K</span>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-[10px] text-gray-700 uppercase font-bold px-4">No Loot Recorded</span>
+                )}
               </div>
 
-              <a href={`https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${battle.opponentPlayerTag.replace('#', '')}`}
-                target="_blank" rel="noreferrer" className="p-3 bg-white/5 rounded-xl text-gray-500 hover:text-accent transition-all">
+              <a href={`https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${battle?.opponentPlayerTag?.replace('#', '') || ''}`}
+                target="_blank" rel="noreferrer" className="p-3 bg-white/5 rounded-xl text-gray-500 hover:text-accent transition-all active:scale-90">
                 <ExternalLink size={18} />
               </a>
             </motion.div>
           ))
+        ) : (
+          <div className="py-20 text-center text-gray-600 font-rajdhani uppercase tracking-widest text-sm">
+            No recent battles found for this account.
+          </div>
         )}
       </div>
     </div>
