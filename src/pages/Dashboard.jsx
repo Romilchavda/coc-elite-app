@@ -59,7 +59,7 @@ export default function Dashboard() {
           name: apiInfo?.name || tag,
           count: stats[tag] || 0,
           target: league?.attacks || 8,
-          icon: apiInfo?.league?.iconUrls?.small || ""
+          icon: apiInfo?.leagueTier?.iconUrls?.small || ""
         };
       })
     };
