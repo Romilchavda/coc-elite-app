@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { RotateCcw, ExternalLink } from 'lucide-react';
+import { RotateCcw, ExternalLink, Sword } from 'lucide-react';
 
 const ACCOUNTS = [
   { id: 1, name: "Romil Chavda-Th17", tag: "PLGQLGLRY" },
@@ -43,42 +43,75 @@ export default function Dashboard() {
     ACCOUNTS.forEach(a => { if(reseted[a.id]) reseted[a.id].count = 0; });
     setStats(reseted);
     localStorage.setItem('coc_v4_data', JSON.stringify(reseted));
-    alert("History Saved!");
+    alert("History Saved & Dashboard Reset!");
   };
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center bg-cardBg border border-white/5 p-6 rounded-3xl shadow-2xl">
-        <h2 className="text-2xl font-rajdhani font-black">WAR ROOM</h2>
-        <button onClick={resetAll} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><RotateCcw /></button>
+      {/* Header */}
+      <div className="flex justify-between items-center bg-cardBg border border-white/5 p-6 rounded-[2rem] shadow-2xl">
+        <div>
+          <h2 className="text-3xl font-rajdhani font-black tracking-tighter">BATTLE HUB</h2>
+          <p className="text-[10px] text-accent font-bold tracking-[.3em] uppercase">Commander on Duty</p>
+        </div>
+        <button onClick={resetAll} className="p-4 bg-red-500/10 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-90">
+          <RotateCcw size={22} />
+        </button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {leagues.length > 0 && ACCOUNTS.map(acc => {
           const s = stats[acc.id] || { count: 0, leagueId: leagues[0].id };
           const l = leagues.find(lg => lg.id === s.leagueId) || leagues[0];
-          const progress = (s.count / l.attacks) * 100;
+          
+          // Segment logic
+          const totalSegments = l.attacks;
+          const completedSegments = s.count;
+
           return (
-            <motion.div key={acc.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-cardBg border border-white/5 p-6 rounded-[2.5rem] shadow-xl">
-              <div className="flex items-center gap-4 mb-6">
-                <img src={l.iconUrls.small} className="w-14 h-14 object-contain" />
-                <div className="flex-1">
-                  <h3 className="font-bold text-accent font-rajdhani leading-none truncate w-32">{acc.name}</h3>
+            <motion.div key={acc.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-cardBg border border-white/5 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group">
+              <div className="flex items-center gap-5 mb-8">
+                <img src={l.iconUrls.small} className="w-16 h-16 object-contain drop-shadow-gold" alt="Icon" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-accent font-rajdhani text-xl leading-none truncate">{acc.name}</h3>
                   <select value={s.leagueId} onChange={(e) => {
                     const ns = { ...stats, [acc.id]: { ...s, leagueId: parseInt(e.target.value) } };
                     setStats(ns); localStorage.setItem('coc_v4_data', JSON.stringify(ns));
-                  }} className="bg-black/40 text-[10px] text-gray-500 p-1 mt-1 rounded-md outline-none w-full">
+                  }} className="bg-black/40 text-[10px] text-gray-500 p-1.5 mt-2 rounded-lg outline-none w-full border border-white/5">
                     {leagues.map(lg => <option key={lg.id} value={lg.id}>{lg.name}</option>)}
                   </select>
                 </div>
-                <a href={`https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${acc.tag}`} className="p-2 bg-white/5 rounded-xl text-cyan-400"><ExternalLink size={16} /></a>
               </div>
-              <div className="bg-black/20 rounded-3xl py-6 text-center mb-6 border border-white/[0.02]">
-                <span className="text-6xl font-rajdhani font-black">{s.count}</span>
-                <p className="text-[10px] text-gray-500 tracking-[0.4em] uppercase">Target: {l.attacks}</p>
+
+              <div className="bg-black/20 rounded-[2.5rem] py-8 text-center mb-8 border border-white/[0.02]">
+                <span className="text-8xl font-rajdhani font-black tracking-tighter">{s.count}</span>
+                <p className="text-[10px] text-gray-500 tracking-[0.4em] uppercase mt-1 font-bold">Done / {l.attacks}</p>
               </div>
+
+              {/* Segmented Progress Bar */}
+              <div className="flex gap-1.5 mb-8 h-2.5">
+                {Array.from({ length: totalSegments }).map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={`flex-1 rounded-full transition-all duration-500 ${
+                      i < completedSegments 
+                      ? 'bg-success shadow-[0_0_10px_#20C607]' // Green if done
+                      : 'bg-orange-500/20 border border-orange-500/10' // Light Orange if pending
+                    }`}
+                  />
+                ))}
+              </div>
+
               <div className="flex gap-4">
-                <button onClick={() => updateCount(acc.id, -1)} className="flex-1 h-14 bg-gray-800 rounded-xl text-2xl font-bold transition-all active:scale-90">-</button>
-                <button onClick={() => updateCount(acc.id, 1)} className="flex-1 h-14 bg-accent text-black rounded-xl text-3xl font-bold transition-all active:scale-95 shadow-lg shadow-accent/20">+</button>
+                <button onClick={() => updateCount(acc.id, -1)} className="flex-1 h-16 bg-gray-800/50 hover:bg-gray-800 rounded-2xl text-3xl font-bold transition-all active:scale-90">-</button>
+                <button onClick={() => updateCount(acc.id, 1)} className="flex-1 h-16 bg-accent text-black rounded-2xl text-4xl font-bold transition-all active:scale-95 shadow-lg shadow-accent/20">+</button>
+              </div>
+
+              <div className="mt-8 flex justify-center">
+                <a href={`https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=${acc.tag}`} target="_blank" className="flex items-center gap-2 text-[10px] font-bold text-cyanCustom tracking-[0.2em] hover:underline uppercase">
+                  <ExternalLink size={12} /> PROFILE: #{acc.tag}
+                </a>
               </div>
             </motion.div>
           );
