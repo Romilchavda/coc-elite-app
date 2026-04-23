@@ -5,8 +5,11 @@ import { LayoutDashboard, History, X } from 'lucide-react';
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const navLinks = [
+    // ... (imports)
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={22} /> },
-    { name: 'History', path: '/history', icon: <History size={22} /> },
+    { name: 'History', path: '/history', icon: <HistoryIcon size={22} /> },
+    { name: 'Battle Log', path: '/battlelog', icon: <Swords size={22} /> }, // Naya link
+// ...
   ];
 
   return (

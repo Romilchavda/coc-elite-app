@@ -4,10 +4,12 @@ import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import HistoryPage from './pages/HistoryPage';
+import BattleLog from './pages/BattleLog'; // Import naya page
+
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
-
+  
   return (
     <div className="min-h-screen bg-darkBg text-white selection:bg-accent/30">
       <header className="fixed top-0 left-0 w-full h-16 bg-cardBg/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-5 z-40 md:hidden">
@@ -22,6 +24,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/battlelog" element={<BattleLog />} />
         </Routes>
       </main>
     </div>
