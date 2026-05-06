@@ -6,12 +6,25 @@
   body {
     @apply font-poppins bg-darkBg text-white;
   }
-  h1, h2, h3, .font-game {
+  
+  h1,
+  h2,
+  h3,
+  .font-game {
     @apply font-rajdhani uppercase tracking-wider;
   }
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #080a0f; }
-::-webkit-scrollbar-thumb { background: #fcc419; border-radius: 10px; }
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080a0f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #fcc419;
+  border-radius: 10px;
+}
